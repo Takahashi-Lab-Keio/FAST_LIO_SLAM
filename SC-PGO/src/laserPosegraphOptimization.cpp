@@ -619,8 +619,8 @@ void process_pg()
             // if want to print the current graph, use gtSAMgraph.print("\nFactor Graph:\n");
 
             // save utility 
-            std::string curr_node_idx_str = padZeros(curr_node_idx);
-            pcl::io::savePCDFileBinary(pgScansDirectory + curr_node_idx_str + ".pcd", *thisKeyFrame); // scan 
+            // std::string curr_node_idx_str = padZeros(curr_node_idx);
+            // pcl::io::savePCDFileBinary(pgScansDirectory + curr_node_idx_str + ".pcd", *thisKeyFrame); // scan 
             pgTimeSaveStream << timeLaser << std::endl; // path 
         }
 
@@ -777,9 +777,9 @@ int main(int argc, char **argv)
     odomKITTIformat = save_directory + "odom_poses.txt";
     pgTimeSaveStream = std::fstream(save_directory + "times.txt", std::fstream::out); 
     pgTimeSaveStream.precision(std::numeric_limits<double>::max_digits10);
-    pgScansDirectory = save_directory + "Scans/";
-    auto unused = system((std::string("exec rm -r ") + pgScansDirectory).c_str());
-    unused = system((std::string("mkdir -p ") + pgScansDirectory).c_str());
+    // pgScansDirectory = save_directory + "Scans/";
+    // auto unused = system((std::string("exec rm -r ") + pgScansDirectory).c_str());
+    // unused = system((std::string("mkdir -p ") + pgScansDirectory).c_str());
 
 	nh.param<double>("keyframe_meter_gap", keyframeMeterGap, 2.0); // pose assignment every k m move 
 	nh.param<double>("keyframe_deg_gap", keyframeDegGap, 10.0); // pose assignment every k deg rot 
