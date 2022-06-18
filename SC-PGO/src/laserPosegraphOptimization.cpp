@@ -129,6 +129,9 @@ ros::Publisher pubMapAftPGO, pubOdomAftPGO, pubPathAftPGO;
 ros::Publisher pubLoopScanLocal, pubLoopSubmapLocal;
 ros::Publisher pubOdomRepubVerifier;
 
+sensor_msgs::PointCloud2 laserCloudMapPGOMsg;
+bool MapAftPGO_initialized;
+
 std::string save_directory;
 std::string pgKITTIformat, pgScansDirectory;
 std::string odomKITTIformat;
@@ -748,20 +751,23 @@ void pubMap(void)
     downSizeFilterMapPGO.setInputCloud(laserCloudMapPGO);
     downSizeFilterMapPGO.filter(*laserCloudMapPGO);
 
-    sensor_msgs::PointCloud2 laserCloudMapPGOMsg;
     pcl::toROSMsg(*laserCloudMapPGO, laserCloudMapPGOMsg);
     laserCloudMapPGOMsg.header.frame_id = "camera_init";
     pubMapAftPGO.publish(laserCloudMapPGOMsg);
+    MapAftPGO_initialized = true;
 }
 
 void process_viz_map(void)
 {
-    float vizmapFrequency = 0.1; // 0.1 means run onces every 10s
+    float vizmapFrequency = 1; // 0.1 means run onces every 10s
     ros::Rate rate(vizmapFrequency);
     while (ros::ok()) {
         rate.sleep();
         if(recentIdxUpdated > 1) {
             pubMap();
+        }
+        else if(MapAftPGO_initialized){
+            pubMapAftPGO.publish(laserCloudMapPGOMsg);
         }
     }
 } // pointcloud_viz
@@ -813,6 +819,7 @@ int main(int argc, char **argv)
 	pubOdomRepubVerifier = nh.advertise<nav_msgs::Odometry>("/repub_odom", 100);
 	pubPathAftPGO = nh.advertise<nav_msgs::Path>("/aft_pgo_path", 100);
 	pubMapAftPGO = nh.advertise<sensor_msgs::PointCloud2>("/aft_pgo_map", 100);
+    MapAftPGO_initialized = false;
 
 	pubLoopScanLocal = nh.advertise<sensor_msgs::PointCloud2>("/loop_scan_local", 100);
 	pubLoopSubmapLocal = nh.advertise<sensor_msgs::PointCloud2>("/loop_submap_local", 100);
