@@ -764,8 +764,13 @@ int main(int argc, char** argv)
 
     memset(point_selected_surf, true, sizeof(point_selected_surf));
     memset(res_last, -1000.0f, sizeof(res_last));
+    printf("[LIO downSizeFilterSurf] filter start");
     downSizeFilterSurf.setLeafSize(filter_size_surf_min, filter_size_surf_min, filter_size_surf_min);
+    printf("[LIO downSizeFilterSurf] filter end");
+    printf("[LIO downSizeFilterMap] filter start");
     downSizeFilterMap.setLeafSize(filter_size_map_min, filter_size_map_min, filter_size_map_min);
+    printf("[LIO downSizeFilterMap] filter end");
+
     memset(point_selected_surf, true, sizeof(point_selected_surf));
     memset(res_last, -1000.0f, sizeof(res_last));
 

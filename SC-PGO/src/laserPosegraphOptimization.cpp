@@ -421,8 +421,10 @@ void loopFindNearKeyframesCloud( pcl::PointCloud<PointType>::Ptr& nearKeyframes,
 
     // downsample near keyframes
     pcl::PointCloud<PointType>::Ptr cloud_temp(new pcl::PointCloud<PointType>());
+    printf("[downSizeFilterICP] filter start");
     downSizeFilterICP.setInputCloud(nearKeyframes);
     downSizeFilterICP.filter(*cloud_temp);
+    printf("[downSizeFilterICP] filter end");
     *nearKeyframes = *cloud_temp;
 } // loopFindNearKeyframesCloud
 
@@ -560,8 +562,10 @@ void process_pg()
             // Save data and Add consecutive node 
             //
             pcl::PointCloud<PointType>::Ptr thisKeyFrameDS(new pcl::PointCloud<PointType>());
+            printf("[downSizeFilterScancontext] filter start");
             downSizeFilterScancontext.setInputCloud(thisKeyFrame);
             downSizeFilterScancontext.filter(*thisKeyFrameDS);
+            printf("[downSizeFilterScancontext] filter end");
 
             mKF.lock(); 
             keyframeLaserClouds.push_back(thisKeyFrameDS);
@@ -748,8 +752,10 @@ void pubMap(void)
     }
     mKF.unlock(); 
 
+    printf("[downSizeFilterMapPGO] filter start");
     downSizeFilterMapPGO.setInputCloud(laserCloudMapPGO);
     downSizeFilterMapPGO.filter(*laserCloudMapPGO);
+    printf("[downSizeFilterMapPGO] filter end");
 
     pcl::toROSMsg(*laserCloudMapPGO, laserCloudMapPGOMsg);
     laserCloudMapPGOMsg.header.frame_id = "camera_init";

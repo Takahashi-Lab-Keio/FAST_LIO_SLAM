@@ -541,13 +541,17 @@ void process()
 
 
 			pcl::PointCloud<PointType>::Ptr laserCloudCornerStack(new pcl::PointCloud<PointType>());
+			//printf("[PGO downSizeFilterCorner] filter start");
 			downSizeFilterCorner.setInputCloud(laserCloudCornerLast);
 			downSizeFilterCorner.filter(*laserCloudCornerStack);
+			//printf("[PGO downSizeFilterCorner] filter end");
 			int laserCloudCornerStackNum = laserCloudCornerStack->points.size();
-
+			
 			pcl::PointCloud<PointType>::Ptr laserCloudSurfStack(new pcl::PointCloud<PointType>());
+			//printf("[PGO downSizeFilterSurf] filter start");
 			downSizeFilterSurf.setInputCloud(laserCloudSurfLast);
 			downSizeFilterSurf.filter(*laserCloudSurfStack);
+			//printf("[PGO downSizeFilterSurf] filter end");
 			int laserCloudSurfStackNum = laserCloudSurfStack->points.size();
 
 			//printf("map prepare time %f ms\n", t_shift.toc());
