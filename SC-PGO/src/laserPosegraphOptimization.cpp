@@ -129,6 +129,9 @@ ros::Publisher pubMapAftPGO, pubOdomAftPGO, pubPathAftPGO;
 ros::Publisher pubLoopScanLocal, pubLoopSubmapLocal;
 ros::Publisher pubOdomRepubVerifier;
 
+sensor_msgs::PointCloud2 laserCloudMapPGOMsg;
+bool MapAftPGO_initialized;
+
 std::string save_directory;
 std::string pgKITTIformat, pgScansDirectory;
 std::string odomKITTIformat;
@@ -418,8 +421,10 @@ void loopFindNearKeyframesCloud( pcl::PointCloud<PointType>::Ptr& nearKeyframes,
 
     // downsample near keyframes
     pcl::PointCloud<PointType>::Ptr cloud_temp(new pcl::PointCloud<PointType>());
+    printf("[downSizeFilterICP] filter start");
     downSizeFilterICP.setInputCloud(nearKeyframes);
     downSizeFilterICP.filter(*cloud_temp);
+    printf("[downSizeFilterICP] filter end");
     *nearKeyframes = *cloud_temp;
 } // loopFindNearKeyframesCloud
 
@@ -557,8 +562,10 @@ void process_pg()
             // Save data and Add consecutive node 
             //
             pcl::PointCloud<PointType>::Ptr thisKeyFrameDS(new pcl::PointCloud<PointType>());
+            printf("[downSizeFilterScancontext] filter start");
             downSizeFilterScancontext.setInputCloud(thisKeyFrame);
             downSizeFilterScancontext.filter(*thisKeyFrameDS);
+            printf("[downSizeFilterScancontext] filter end");
 
             mKF.lock(); 
             keyframeLaserClouds.push_back(thisKeyFrameDS);
@@ -619,8 +626,8 @@ void process_pg()
             // if want to print the current graph, use gtSAMgraph.print("\nFactor Graph:\n");
 
             // save utility 
-            std::string curr_node_idx_str = padZeros(curr_node_idx);
-            pcl::io::savePCDFileBinary(pgScansDirectory + curr_node_idx_str + ".pcd", *thisKeyFrame); // scan 
+            // std::string curr_node_idx_str = padZeros(curr_node_idx);
+            // pcl::io::savePCDFileBinary(pgScansDirectory + curr_node_idx_str + ".pcd", *thisKeyFrame); // scan 
             pgTimeSaveStream << timeLaser << std::endl; // path 
         }
 
@@ -745,23 +752,28 @@ void pubMap(void)
     }
     mKF.unlock(); 
 
+    printf("[downSizeFilterMapPGO] filter start");
     downSizeFilterMapPGO.setInputCloud(laserCloudMapPGO);
     downSizeFilterMapPGO.filter(*laserCloudMapPGO);
+    printf("[downSizeFilterMapPGO] filter end");
 
-    sensor_msgs::PointCloud2 laserCloudMapPGOMsg;
     pcl::toROSMsg(*laserCloudMapPGO, laserCloudMapPGOMsg);
     laserCloudMapPGOMsg.header.frame_id = "camera_init";
     pubMapAftPGO.publish(laserCloudMapPGOMsg);
+    MapAftPGO_initialized = true;
 }
 
 void process_viz_map(void)
 {
-    float vizmapFrequency = 0.1; // 0.1 means run onces every 10s
+    float vizmapFrequency = 1; // 0.1 means run onces every 10s
     ros::Rate rate(vizmapFrequency);
     while (ros::ok()) {
         rate.sleep();
         if(recentIdxUpdated > 1) {
             pubMap();
+        }
+        else if(MapAftPGO_initialized){
+            pubMapAftPGO.publish(laserCloudMapPGOMsg);
         }
     }
 } // pointcloud_viz
@@ -777,9 +789,9 @@ int main(int argc, char **argv)
     odomKITTIformat = save_directory + "odom_poses.txt";
     pgTimeSaveStream = std::fstream(save_directory + "times.txt", std::fstream::out); 
     pgTimeSaveStream.precision(std::numeric_limits<double>::max_digits10);
-    pgScansDirectory = save_directory + "Scans/";
-    auto unused = system((std::string("exec rm -r ") + pgScansDirectory).c_str());
-    unused = system((std::string("mkdir -p ") + pgScansDirectory).c_str());
+    // pgScansDirectory = save_directory + "Scans/";
+    // auto unused = system((std::string("exec rm -r ") + pgScansDirectory).c_str());
+    // unused = system((std::string("mkdir -p ") + pgScansDirectory).c_str());
 
 	nh.param<double>("keyframe_meter_gap", keyframeMeterGap, 2.0); // pose assignment every k m move 
 	nh.param<double>("keyframe_deg_gap", keyframeDegGap, 10.0); // pose assignment every k deg rot 
@@ -813,6 +825,7 @@ int main(int argc, char **argv)
 	pubOdomRepubVerifier = nh.advertise<nav_msgs::Odometry>("/repub_odom", 100);
 	pubPathAftPGO = nh.advertise<nav_msgs::Path>("/aft_pgo_path", 100);
 	pubMapAftPGO = nh.advertise<sensor_msgs::PointCloud2>("/aft_pgo_map", 100);
+    MapAftPGO_initialized = false;
 
 	pubLoopScanLocal = nh.advertise<sensor_msgs::PointCloud2>("/loop_scan_local", 100);
 	pubLoopSubmapLocal = nh.advertise<sensor_msgs::PointCloud2>("/loop_submap_local", 100);

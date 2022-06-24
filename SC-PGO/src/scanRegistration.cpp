@@ -413,9 +413,11 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
 
         pcl::PointCloud<PointType> surfPointsLessFlatScanDS;
         pcl::VoxelGrid<PointType> downSizeFilter;
+        // printf("[downSizeFilter] filter start");
         downSizeFilter.setInputCloud(surfPointsLessFlatScan);
-        downSizeFilter.setLeafSize(0.2, 0.2, 0.2);
+        downSizeFilter.setLeafSize(0.3, 0.3, 0.3);
         downSizeFilter.filter(surfPointsLessFlatScanDS);
+        // printf("[downSizeFilter] filter end");
 
         surfPointsLessFlat += surfPointsLessFlatScanDS;
     }
